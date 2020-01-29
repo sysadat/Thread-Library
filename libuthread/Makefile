@@ -1,8 +1,11 @@
 # Target library
-lib := libuthread.a
+lib  := libuthread.a
 objs := queue.o
 
-CC := gcc
+CC     := gcc
+STATIC := ar
+STATIC += rcs
+
 CFLAGS := -Wall -Wextra -Werror
 CFLAGS += -g
 
@@ -16,12 +19,12 @@ deps := $(patsubst %.o,%.d,$(objs))
 -include $(deps)
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
-libuthread.a: $(objs)
+$(lib): $(objs)
 	@echo "CC $@"
-	$(Q)$(CC)$(CFLAGS) -o $@$^
+	$(Q)$(STATIC) $@ $^
 %.o: %.c
 	@echo "CC $@"
-	$(Q)$(CC)$(CFLAGS) -c -o $@$<$(DEPFLAGS)
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $< $(DEPFLAGS)
 clean:
 	@echo "clean"
 	$(Q)rm -f $(lib) $(objs) $(deps)
