@@ -24,10 +24,12 @@ struct queue {
 	Node *tail;
 };
 
+//initalizes a new node
 Node createNewNode(void *data)
 {
 	Node *newNode = (Node*)malloc(sizeof(Node));
 	if (!newNode) {
+		// malloc failed
 		return -1;
 	}
 	newNode -> data = data;
@@ -35,21 +37,25 @@ Node createNewNode(void *data)
 	return newNode;
 }
 
+//initializes a queue
 queue_t queue_create(void)
 {
 	struct queue *createdQueue = (struct queue*)malloc(sizeof(struct queue));
 	if (!createdQueue) {
 		return NULL;
 	} else {
+		createdQueue -> length = 0;
 		createdQueue -> head = NULL;
 		createdQueue -> tail = NULL;
 		return createdQueue;
 	}
 }
 
+//destroys and frees the queue
 int queue_destroy(queue_t queue)
 {
 	if (!queue || queue -> length > 0) {
+		//queue is NULL or queue is not empty
 		return -1;
 	} else {
 		free(queue);
@@ -57,13 +63,16 @@ int queue_destroy(queue_t queue)
 	}
 }
 
+// adds an item to the queue
 int queue_enqueue(queue_t queue, void *data)
 {
 	if (!queue || !data) {
+		//no queue or data to be queued
 		return -1;
 	}
 	Node *newNode = createNewNode(data);
 	if (!newNode) {
+		//error creating new node
 		return -1;
 	}
 	if (!queue -> tail) {
@@ -81,6 +90,7 @@ int queue_enqueue(queue_t queue, void *data)
 int queue_dequeue(queue_t queue, void **data)
 {
 	if (!queue || !data || !queue -> head) {
+		// error nothing to dequeue
 		return -1;
 	}
 	Node *tempNode = queue -> head;
