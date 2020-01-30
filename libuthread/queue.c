@@ -133,7 +133,7 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 		funcRetVal = (func(currNode -> data, arg));
 		if (funcRetVal == 1) {
 			if (data != NULL) {
-				data = currNode -> data;
+				*data = currNode -> data;
 			}
 			return 0;
 		}

@@ -12,6 +12,7 @@ void test_create(void)
 
     q = queue_create();
     assert(q != NULL);
+
 }
 
 void test_queue_simple(void)
@@ -73,5 +74,8 @@ void test_iterator(void)
 }
 
 int main (void) {
+	test_create();
+	test_queue_simple();
+	test_iterator();
 	return 0;
 }
