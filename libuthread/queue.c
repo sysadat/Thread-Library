@@ -25,13 +25,9 @@ struct queue {
 };
 
 //initalizes a new node
-Node createNewNode(void *data)
+Node *createNewNode(void *data)
 {
 	Node *newNode = (Node*)malloc(sizeof(Node));
-	if (!newNode) {
-		// malloc failed
-		return -1;
-	}
 	newNode -> data = data;
 	newNode -> next = NULL;
 	return newNode;
@@ -82,7 +78,7 @@ int queue_enqueue(queue_t queue, void *data)
 		return 0;
 	}
 	queue -> tail -> next = newNode;
-	queue -> tail = newNode
+	queue -> tail = newNode;
 	queue -> length += 1;
 	return 0;
 }
@@ -106,12 +102,51 @@ int queue_dequeue(queue_t queue, void **data)
 
 int queue_delete(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
+	if (!queue || !data) {
+		return -1;
+	}
+	// If the head is the data, then remove the head
+	Node *prevNode = queue -> head;
+	if (prevNode -> data == data) {
+		queue -> length -= 1;
+		queue -> head = prevNode -> next;
+		free(prevNode);
+		return 0;
+	}
+	// Otherwise, we remove the fist occurence
+	Node *currNode = prevNode -> next;
+	while(currNode != NULL) {
+		if (currNode -> data == data) {
+			queue -> length -= 1;
+			prevNode -> next = currNode -> next;
+			free(currNode);
+			return 0;
+		}
+		prevNode = prevNode -> next;
+		currNode = currNode -> next;
+	}
+	// If data not found
+	return -1;
 }
 
 int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 {
-	/* TODO Phase 1 */
+	if (!queue || !func) {
+		return -1;
+	}
+	int funcRetVal = 0;
+	Node *currNode = queue -> head;
+	while (currNode != NULL) {
+		funcRetVal = (func(currNode -> data, arg));
+		if (funcRetVal == 1) {
+			if (data != NULL) {
+				data = currNode -> data;
+			}
+			return 0;
+		}
+		currNode = currNode -> next;
+	}
+	return 0;
 }
 
 int queue_length(queue_t queue)
