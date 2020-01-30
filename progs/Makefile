@@ -1,6 +1,7 @@
 # Target programs
 #  **Add more lines to this variable in order to compile more programs**
 programs := \
+	test_queue.x \
 	uthread_hello.x \
 	uthread_yield.x
 
@@ -78,4 +79,3 @@ clean:
 	$(Q)rm -rf $(objs) $(deps) $(programs)
 
 .PHONY: clean $(libuthread)
-

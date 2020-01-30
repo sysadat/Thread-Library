@@ -4,19 +4,12 @@
 
 #include "queue.h"
 
-/* Inspired by https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A */
-
-/* Inspired by https://www.geeksforgeeks.org/queue-linked-list-implementation/*/
+/* Inspired by https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A and https://www.geeksforgeeks.org/queue-linked-list-implementation */
 
 typedef struct Node {
 	void *data;
-	// struct Node *prev;
 	struct Node *next;
 } Node;
-
-// A global pointer to the head node
-// Node *head;
-// head = NULL;
 
 struct queue {
 	int length;
