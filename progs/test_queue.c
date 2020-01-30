@@ -71,3 +71,7 @@ void test_iterator(void)
     assert(*ptr == 5);
     assert(ptr == &data[3]);
 }
+
+int main (void) {
+	return 0;
+}
