@@ -73,9 +73,37 @@ void test_iterator(void)
     assert(ptr == &data[3]);
 }
 
+void test_length(void)
+{
+	queue_t q;
+	int testLength = 0;
+
+	// Check length of a created, but empty queue
+	q = queue_create();
+	testLength = queue_length(q);
+	printf("testLength 0 is: %d\n", testLength);
+	assert(testLength >= 0);
+
+	// Check length of a queue after enqueue
+        int data = 3, *ptr;
+
+        queue_enqueue(q, &data);
+	testLength = queue_length(q);
+	printf("testLength 1 is: %d\n", testLength);
+	assert(testLength == 1);
+
+	// Check length of a queue after dequeue
+
+        queue_dequeue(q, (void**)&ptr);
+	testLength = queue_length(q);
+	printf("testLength 2 is: %d\n", testLength);
+	assert(testLength == 0);
+}
+
 int main (void) {
 	test_create();
 	test_queue_simple();
 	test_iterator();
+	test_length();
 	return 0;
 }
