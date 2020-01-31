@@ -35,17 +35,6 @@ void test_destroy(void)
 void test_enqueue(void)
 {
 	queue_t q;
-	int data = 3, *ptr;
-
-	q = queue_create();
-	queue_enqueue(q, &data);
-	queue_dequeue(q, (void**)&ptr);
-	assert(ptr == &data);
-}
-
-void test_queue_simple(void)
-{
-	queue_t q;
 	int data = 3, enqueueCheck = 0;
 
 	q = queue_create();
@@ -59,6 +48,8 @@ void test_queue_simple(void)
 	assert(enqueueCheck == -1);
 
 }
+
+// PUT THE TESTS HERE FOR DEQUEUE AND DELETE 
 
 /* Callback function that increments items by a certain value */
 static int inc_item(void *data, void *arg)
@@ -129,6 +120,17 @@ void test_length(void)
 	queue_dequeue(q, (void**)&ptr);
 	testLength = queue_length(q);
 	assert(testLength == 0);
+}
+
+void test_queue_simple(void)
+{
+	queue_t q;
+	int data = 3, *ptr;
+
+	q = queue_create();
+	queue_enqueue(q, &data);
+	queue_dequeue(q, (void**)&ptr);
+	assert(ptr == &data);
 }
 
 int main (void) {
