@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "queue.h"
 
@@ -150,3 +151,12 @@ int queue_length(queue_t queue)
 	return queue -> length;
 
 }
+// Helper function to be called from other functions to help debug
+// static void queue_print(queue_t queue)
+// {
+// 	Node *current = queue -> head;
+// 	while(current != NULL) {
+// 		printf("Item is: %p\n", current -> data);
+// 		current = current -> next;
+// 	}
+// }

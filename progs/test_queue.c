@@ -53,6 +53,8 @@ void test_create(void)
 
 void test_destroy(void)
 {
+	fprintf(stderr, "*** TEST destroy ***\n");
+
 	queue_t q;
 	int data = 3;
 
@@ -71,6 +73,8 @@ void test_destroy(void)
 
 void test_enqueue(void)
 {
+	fprintf(stderr, "*** TEST enqueue ***\n");
+
 	queue_t q;
 	int data1 = 1;
 	int data2 = 2;
@@ -102,6 +106,8 @@ void test_enqueue(void)
 
 void test_dequeue(void)
 {
+	fprintf(stderr, "*** TEST dequeue ***\n");
+
 	queue_t q;
 	int data1 = 1;
 	int data2 = 2;
@@ -134,6 +140,8 @@ void test_dequeue(void)
 }
 void test_delete(void)
 {
+	fprintf(stderr, "*** TEST delete ***\n");
+
 	queue_t q;
 	int data1 = 1;
 	int data2 = 2;
@@ -163,6 +171,8 @@ void test_delete(void)
 
 void test_iterator(void)
 {
+	fprintf(stderr, "*** TEST iterator ***\n");
+
 	queue_t q;
 	int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 	int i;
@@ -192,6 +202,8 @@ void test_iterator(void)
 
 void test_length(void)
 {
+	fprintf(stderr, "*** TEST length ***\n");
+
 	queue_t q;
 	int testLength;
 	int data = 3, *ptr;
@@ -223,10 +235,10 @@ void test_length(void)
 /*queue_simple checks the result of a simple enqueue/dequeue scenario*/
 void test_queue_simple(void)
 {
+	fprintf(stderr, "*** TEST queue_simple ***\n");
+
 	queue_t q;
 	int data = 3, *ptr;
-
-	fprintf(stderr, "*** TEST queue_simple ***\n");
 
 	q = queue_create();
 	queue_enqueue(q, &data);
@@ -235,6 +247,8 @@ void test_queue_simple(void)
 }
 void test_elaborate(void)
 {
+	fprintf(stderr, "*** TEST elaborate ***\n");
+
 	queue_t q;
 	int data1 = 1;
 	int data2 = 2;
@@ -261,8 +275,11 @@ void test_elaborate(void)
 
 void test_print(void)
 {
+
+	fprintf(stderr, "*** TEST print ***\n");
+
 	queue_t q;
-	int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int data[] = {1, 2, 3};
 
 	/* Initialize the queue and enqueue items */
 	q = queue_create();
