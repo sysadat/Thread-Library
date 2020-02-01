@@ -66,14 +66,14 @@ int queue_enqueue(queue_t queue, void *data)
 		return -1;
 	}
 	if (!queue -> tail) {
+		queue -> length += 1;
 		queue -> head = newNode;
 		queue -> tail = newNode;
-		queue -> length += 1;
 		return 0;
 	}
+	queue -> length += 1;
 	queue -> tail -> next = newNode;
 	queue -> tail = newNode;
-	queue -> length += 1;
 	return 0;
 }
 
