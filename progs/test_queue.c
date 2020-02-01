@@ -46,8 +46,10 @@ void test_destroy(void)
 	assert(queue_destroy(q) == 0);
 
 	//Check to see that it will return -1 if given a non-empty queue
+	q = queue_create();
 	queue_enqueue(q, &data);
 	assert(queue_destroy(q) == -1);
+
 	//Check to see that it will return -1 if given a NULL queue
 	assert(queue_destroy(NULL) == -1);
 }
@@ -177,6 +179,7 @@ void test_length(void)
 {
 	queue_t q;
 	int testLength;
+	int data = 3, *ptr;
 
 	// Check length of a created, but empty queue
 	q = queue_create();
@@ -184,20 +187,22 @@ void test_length(void)
 	assert(testLength >= 0);
 
 	// Check length of a queue after enqueue
-	int data = 3, *ptr;
-
 	queue_enqueue(q, &data);
 	testLength = queue_length(q);
 	assert(testLength == 1);
 
-	// Check length of a queue after dequeue
+	// Check length of a queue after enqueue
+	queue_enqueue(q, &data);
+	testLength = queue_length(q);
+	assert(testLength == 2);
 
+	// Check length of a queue after dequeue
 	queue_dequeue(q, (void**)&ptr);
 	testLength = queue_length(q);
-	assert(testLength == 0);
+	assert(testLength == 1);
 
 	//check to make sure -1 is returned if the queue is NULL
-	assert(queue_length(NULL)==-1);
+	assert(queue_length(NULL)== -1);
 }
 
 /*queue_simple checks the result of a simple enqueue/dequeue scenario*/
@@ -212,7 +217,8 @@ void test_queue_simple(void)
 	assert(ptr == &data);
 }
 
-int main (void) {
+int main (void)
+{
 	test_create();
 	test_destroy();
 	test_enqueue();
