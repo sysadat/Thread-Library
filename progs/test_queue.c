@@ -3,7 +3,19 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+
 #include "../libuthread/queue.c"
+
+#define TEST_ASSERT(assert)			\
+do {						\
+	printf("ASSERT: " #assert " ... ");	\
+	if (assert) {				\
+		printf("PASS\n");		\
+	} else	{				\
+		printf("FAIL\n");		\
+		exit(1);			\
+	}					\
+} while(0)
 
 /* Callback function that increments items by a certain value */
 static int inc_item(void *data, void *arg)
@@ -31,9 +43,12 @@ static int find_item(void *data, void *arg)
 /* The first unit test simply checks that creating a queue succeeds */
 void test_create(void)
 {
+	fprintf(stderr, "*** TEST create ***\n");
+
 	queue_t q;
 	q = queue_create();
-	assert(q != NULL);
+	TEST_ASSERT(q != NULL);
+
 }
 
 void test_destroy(void)
@@ -43,15 +58,15 @@ void test_destroy(void)
 
 	//Check to see if it can destroy an empty queue
 	q = queue_create();
-	assert(queue_destroy(q) == 0);
+	TEST_ASSERT(queue_destroy(q) == 0);
 
 	//Check to see that it will return -1 if given a non-empty queue
 	q = queue_create();
 	queue_enqueue(q, &data);
-	assert(queue_destroy(q) == -1);
+	TEST_ASSERT(queue_destroy(q) == -1);
 
 	//Check to see that it will return -1 if given a NULL queue
-	assert(queue_destroy(NULL) == -1);
+	TEST_ASSERT(queue_destroy(NULL) == -1);
 }
 
 void test_enqueue(void)
@@ -63,26 +78,26 @@ void test_enqueue(void)
 	q = queue_create();
 
 	// Check that it returns 0 if data was enqueued properly
-	assert(queue_enqueue(q, &data1) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data1) == 0);
 	// check if the value in the queue is the value we enqueued
-	assert(q -> tail -> data == &data1);
+	TEST_ASSERT(q -> tail -> data == &data1);
 	// Check that it returns 0 if data was enqueued properly
-	assert(queue_enqueue(q, &data2) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data2) == 0);
 	// check if the value in the queue is the value we enqueued
-	assert(q -> tail -> data== &data2);
+	TEST_ASSERT(q -> tail -> data== &data2);
 	// Check that it returns 0 if data was enqueued properly
-	assert(queue_enqueue(q, &data3) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data3) == 0);
 	// check that the values in the queue are correct
-	assert(q -> tail -> data == &data3);
+	TEST_ASSERT(q -> tail -> data == &data3);
 	// check that the values in the queue are correct
-	assert(q -> head -> data == &data1);
+	TEST_ASSERT(q -> head -> data == &data1);
 	// check that the length of the queue is correct
-	assert(q -> length == 3);
+	TEST_ASSERT(q -> length == 3);
 
 	// Check if returns -1 if data is null
-	assert(queue_enqueue(q, NULL) == -1);
+	TEST_ASSERT(queue_enqueue(q, NULL) == -1);
 	// Check if returns -1 if queue is null
-	assert(queue_enqueue(NULL, &data1) == -1);
+	TEST_ASSERT(queue_enqueue(NULL, &data1) == -1);
 }
 
 void test_dequeue(void)
@@ -98,24 +113,24 @@ void test_dequeue(void)
 	queue_enqueue(q, &data3);
 
 	// Check that it returns 0 if data was dequeued properly
-	assert(queue_dequeue(q, (void**)&ptr)==0);
+	TEST_ASSERT(queue_dequeue(q, (void**)&ptr)==0);
 	// Check that it dequeued the correct (oldest) data
-	assert(ptr == &data1);
+	TEST_ASSERT(ptr == &data1);
 	// Check that it dequeued the correct (oldest) data
 	queue_dequeue(q, (void**)&ptr);
-	assert(ptr == &data2);
+	TEST_ASSERT(ptr == &data2);
 	//check if length is being updated correctly
-	assert(q -> length == 1);
+	TEST_ASSERT(q -> length == 1);
 	// Check that it dequeued the correct (oldest) data
 	queue_dequeue(q, (void**)&ptr);
-	assert(ptr == &data3);
+	TEST_ASSERT(ptr == &data3);
 	// Check that it returns -1 if there is nothing left to dequeue
-	assert(queue_dequeue(q, (void**)&ptr)==-1);
+	TEST_ASSERT(queue_dequeue(q, (void**)&ptr)==-1);
 
 	// Check if returns -1 if data is null
-	assert(queue_dequeue(q, NULL) == -1);
+	TEST_ASSERT(queue_dequeue(q, NULL) == -1);
 	// Check if returns -1 if queue is null
-	assert(queue_dequeue(NULL, (void**)&ptr) == -1);
+	TEST_ASSERT(queue_dequeue(NULL, (void**)&ptr) == -1);
 }
 void test_delete(void)
 {
@@ -129,21 +144,21 @@ void test_delete(void)
 	queue_enqueue(q, &data3);
 
 	// Check that it returns 0 if data was deleted properly
-	assert(queue_delete(q, &data2) == 0);
+	TEST_ASSERT(queue_delete(q, &data2) == 0);
 	// check that the length of the queue is correct
-	assert(q -> length == 2);
+	TEST_ASSERT(q -> length == 2);
 	// check if delete worked properly
-	assert(q -> head -> data == &data1);
+	TEST_ASSERT(q -> head -> data == &data1);
 	// check if delete worked properly
-	assert(q -> tail -> data == &data3);
+	TEST_ASSERT(q -> tail -> data == &data3);
 	// Check that it returns -1 if data was not found (it was deleted)
-	assert(queue_delete(q, &data2) == -1);
+	TEST_ASSERT(queue_delete(q, &data2) == -1);
 	// check that the length was not changed
-	assert(q -> length == 2);
+	TEST_ASSERT(q -> length == 2);
 
 	// Check if queue_delete returns -1 if the data or queue is NULL
-	assert(queue_delete(q, NULL) == -1);
-	assert(queue_delete(NULL, &data1) == -1);
+	TEST_ASSERT(queue_delete(q, NULL) == -1);
+	TEST_ASSERT(queue_delete(NULL, &data1) == -1);
 }
 
 void test_iterator(void)
@@ -160,18 +175,18 @@ void test_iterator(void)
 
 	/* Add value '1' to every item of the queue */
 	queue_iterate(q, inc_item, (void*)1, NULL);
-	assert(data[0] == 2);
+	TEST_ASSERT(data[0] == 2);
 
 	/* Find and get the item which is equal to value '5' */
 	ptr = NULL;
 	queue_iterate(q, find_item, (void*)5, (void**)&ptr);
-	assert(ptr != NULL);
-	assert(*ptr == 5);
-	assert(ptr == &data[3]);
+	TEST_ASSERT(ptr != NULL);
+	TEST_ASSERT(*ptr == 5);
+	TEST_ASSERT(ptr == &data[3]);
 
 	//check if -1 is returned if the queue or function is NULL
-	assert(queue_iterate(q, NULL, (void*)5, (void**)&ptr)==-1);
-	assert(queue_iterate(NULL, find_item, (void*)5, (void**)&ptr)==-1);
+	TEST_ASSERT(queue_iterate(q, NULL, (void*)5, (void**)&ptr)==-1);
+	TEST_ASSERT(queue_iterate(NULL, find_item, (void*)5, (void**)&ptr)==-1);
 
 }
 
@@ -184,25 +199,25 @@ void test_length(void)
 	// Check length of a created, but empty queue
 	q = queue_create();
 	testLength = queue_length(q);
-	assert(testLength >= 0);
+	TEST_ASSERT(testLength >= 0);
 
 	// Check length of a queue after enqueue
 	queue_enqueue(q, &data);
 	testLength = queue_length(q);
-	assert(testLength == 1);
+	TEST_ASSERT(testLength == 1);
 
 	// Check length of a queue after enqueue
 	queue_enqueue(q, &data);
 	testLength = queue_length(q);
-	assert(testLength == 2);
+	TEST_ASSERT(testLength == 2);
 
 	// Check length of a queue after dequeue
 	queue_dequeue(q, (void**)&ptr);
 	testLength = queue_length(q);
-	assert(testLength == 1);
+	TEST_ASSERT(testLength == 1);
 
 	//check to make sure -1 is returned if the queue is NULL
-	assert(queue_length(NULL)== -1);
+	TEST_ASSERT(queue_length(NULL)== -1);
 }
 
 /*queue_simple checks the result of a simple enqueue/dequeue scenario*/
@@ -211,10 +226,12 @@ void test_queue_simple(void)
 	queue_t q;
 	int data = 3, *ptr;
 
+	fprintf(stderr, "*** TEST queue_simple ***\n");
+
 	q = queue_create();
 	queue_enqueue(q, &data);
 	queue_dequeue(q, (void**)&ptr);
-	assert(ptr == &data);
+	TEST_ASSERT(ptr == &data);
 }
 void test_elaborate(void)
 {
@@ -226,20 +243,20 @@ void test_elaborate(void)
 
 	q = queue_create();
 
-	assert(queue_enqueue(q, &data1) == 0);
-	assert(queue_enqueue(q, &data2) == 0);
-	assert(queue_enqueue(q, &data3) == 0);
-	assert(queue_iterate(q, inc_item,(void*)1, NULL) == 0);
-	assert(queue_delete(q, &data2) == 0);
-	assert(data1 == 2);
-	assert(data2 == 3);
-	assert(data3 == 4);
-	assert(queue_dequeue(q, (void**)&ptr) == 0);
-	assert(ptr == &data1);
-	assert(queue_length(q) == 1);
-	assert(queue_dequeue(q, (void**)&ptr) == 0);
-	assert(ptr == &data3);
-	assert(queue_destroy(q) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data1) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data2) == 0);
+	TEST_ASSERT(queue_enqueue(q, &data3) == 0);
+	TEST_ASSERT(queue_iterate(q, inc_item,(void*)1, NULL) == 0);
+	TEST_ASSERT(queue_delete(q, &data2) == 0);
+	TEST_ASSERT(data1 == 2);
+	TEST_ASSERT(data2 == 3);
+	TEST_ASSERT(data3 == 4);
+	TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == 0);
+	TEST_ASSERT(ptr == &data1);
+	TEST_ASSERT(queue_length(q) == 1);
+	TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == 0);
+	TEST_ASSERT(ptr == &data3);
+	TEST_ASSERT(queue_destroy(q) == 0);
 }
 
 void test_print(void)
