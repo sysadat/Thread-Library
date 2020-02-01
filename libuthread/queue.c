@@ -146,7 +146,7 @@ int queue_length(queue_t queue)
 {
 	if (!queue) {
 		return -1;
-	} else {
-		return queue -> length;
 	}
+	return queue -> length;
+
 }

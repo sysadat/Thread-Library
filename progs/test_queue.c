@@ -216,6 +216,48 @@ void test_queue_simple(void)
 	queue_dequeue(q, (void**)&ptr);
 	assert(ptr == &data);
 }
+void test_elaborate(void)
+{
+	queue_t q;
+	int data1 = 1;
+	int data2 = 2;
+	int data3 = 3;
+	int *ptr;
+
+	q = queue_create();
+
+	assert(queue_enqueue(q, &data1) == 0);
+	assert(queue_enqueue(q, &data2) == 0);
+	assert(queue_enqueue(q, &data3) == 0);
+	assert(queue_iterate(q, inc_item,(void*)1, NULL) == 0);
+	assert(queue_delete(q, &data2) == 0);
+	assert(data1 == 2);
+	assert(data2 == 3);
+	assert(data3 == 4);
+	assert(queue_dequeue(q, (void**)&ptr) == 0);
+	assert(ptr == &data1);
+	assert(queue_length(q) == 1);
+	assert(queue_dequeue(q, (void**)&ptr) == 0);
+	assert(ptr == &data3);
+	assert(queue_destroy(q) == 0);
+}
+
+void test_print(void)
+{
+	queue_t q;
+	int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+	/* Initialize the queue and enqueue items */
+	q = queue_create();
+	for (int i = 0; i < sizeof(data) / sizeof(data[0]); i++) {
+		queue_enqueue(q, &data[i]);
+	}
+	Node *current = q -> head;
+	while(current != NULL) {
+		printf("Item is: %d\n", *(int *)current -> data);
+		current = current -> next;
+	}
+}
 
 int main (void)
 {
@@ -227,5 +269,7 @@ int main (void)
 	test_iterator();
 	test_length();
 	test_queue_simple();
+	test_elaborate();
+	test_print();
 	return 0;
 }
