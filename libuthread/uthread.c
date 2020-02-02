@@ -50,7 +50,7 @@ int threadInitialization(void)
 	}
 	mainThread -> threadState = RUNNING;
 	runningThread = mainThread;
-	contextInitCheck = uthread_ctx_init(&runningThread -> threadContext, runningThread->stackPointer, func, arg);
+	contextInitCheck = uthread_ctx_init(&runningThread -> threadContext, runningThread -> stackPointer, func, arg);
 	if (contextInitCheck == -1) {
 		return -1;
 	}
@@ -58,7 +58,24 @@ int threadInitialization(void)
 }
 void uthread_yield(void)
 {
-	/* TODO Phase 2 */
+	// Keep track of current thread
+	TCB *prevThread = runningThread;
+
+	// Get new ready thread and set it to running
+	queue_dequeue(readyQueue, (void **)&runningThread);
+	runningThread -> threadState = RUNNING;
+
+	// Store previous thread in a proper queue
+	if (prevThread -> threadState == BLOCKED) {
+		queue_enqueue(blockedQueue, prevThread);
+	} else {
+		prevThread -> threadState = READY;
+		queue_enqueue(readyQueue, prevThread);
+	}
+
+	// The current thread is now running and then initiate the yield
+	runningThread -> state = RUNNING;
+	uthread_ctx_switch(&prevThread -> threadContext, &runningThread -> threadContext);
 }
 
 uthread_t uthread_self(void)
@@ -77,10 +94,13 @@ int uthread_create(uthread_func_t func, void *arg)
 		}
 	}
 	TCB *newThread = (TCB*)malloc(sizeof(TCB));
-	if (!newThread || numThread >= USHRT_MAX) {
+	if (!newThread) {
 		return -1;
 	}
 	newThread -> TID = numThread++;
+	if (numThread >= USHRT_MAX) {
+		return -1;
+	}
 	newThread -> threadState = READY;
 	newThread -> stackPointer = uthread_ctx_alloc_stack();
 	if (!newThread -> stackPointer) {
