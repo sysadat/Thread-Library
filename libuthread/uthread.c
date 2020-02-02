@@ -74,7 +74,6 @@ void uthread_yield(void)
 	}
 
 	// The current thread is now running and then initiate the yield
-	runningThread -> state = RUNNING;
 	uthread_ctx_switch(&prevThread -> threadContext, &runningThread -> threadContext);
 }
 
@@ -121,6 +120,16 @@ void uthread_exit(int retval)
 
 int uthread_join(uthread_t tid, int *retval)
 {
-	/* TODO Phase 2 */
+	if (!tid) {
+		return -1;
+	}
+	while (1) {
+		if (!queue_length(readyQueue)) {
+			break;
+		} else {
+			uthread_yield();
+		}
+	}
+	return 0;
 	/* TODO Phase 3 */
 }
