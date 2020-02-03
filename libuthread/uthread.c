@@ -46,6 +46,7 @@ static int checkTID(void *thread, void *tid)
 		return (givenThread ->TID == givenTid);
 	}
 }
+
 int threadInitialization(uthread_func_t func, void *arg)
 {	//this needs comments
 	int contextInitCheck = 0;
@@ -143,11 +144,10 @@ void uthread_exit(int retval)
 		parent -> retValue = retval;
 		queue_delete(blockedQueue, parent);
 		queue_enqueue(readyQueue, parent);
-	// V I DONT THINK THIS ELSE SHOULD BE HERE!!!
-	} else { // If no parent thread, it is a zombie.
-		runningThread -> threadState = ZOMBIE;
-		queue_enqueue(zombieQueue, runningThread);
 	}
+	// If no parent thread, it is a zombie.
+	runningThread -> threadState = ZOMBIE;
+	queue_enqueue(zombieQueue, runningThread);
 	TCB *oldThread = runningThread;
 	queue_dequeue(readyQueue, (void**)&runningThread);
 	uthread_ctx_switch(&oldThread -> threadContext, &runningThread -> threadContext);
