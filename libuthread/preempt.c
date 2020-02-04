@@ -25,6 +25,7 @@ struct sigaction signalAction;
 static void sigvtalrmHandler(int signum)
 {
 	uthread_yield();
+	// Get error because signum is unused, so need this 
 	if (0) {
 		printf("signum is: %d\n", signum);
 	}
@@ -36,17 +37,18 @@ void preempt_disable(void)
 	sigprocmask(SIG_BLOCK, &signalSetter, NULL);
 }
 
-// Enable preempt by unblock SIGVTALRM signals
+// Enable preempt by unblocking SIGVTALRM signals
 void preempt_enable(void)
 {
 	sigprocmask(SIG_UNBLOCK, &signalSetter, NULL);
 }
 
-/* Signal handler, which is a timer interrupt handler, will force current
- * process to yield */
+/* Create a signal handler, which is a timer interrupt handler, that will force
+ * the current process to yield */
 void preempt_start(void)
 {
 	int interval = 0;
+
 	/* Set up handler so if we receive a SIGVTALRM alarm,
 	 * we will force the runningThread to yield */
 	memset(&signalAction, 0, sizeof(signalAction));
