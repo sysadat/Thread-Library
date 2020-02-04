@@ -21,7 +21,7 @@
 typedef struct{
 	uthread_t TID;
 	uthread_t parentTID;
-	uthread_ctx_t threadContext;
+	uthread_ctx_t *threadContext;
 	void *stackPointer;
 	unsigned short threadState;
 	int retValue;
@@ -32,7 +32,6 @@ uthread_t threadCount = 0;
 queue_t readyQueue;
 queue_t blockedQueue;
 queue_t zombieQueue;
-TCB *mainThread;
 TCB *runningThread;
 
 // checks if a thread's TID is equal to a given tid
@@ -56,8 +55,12 @@ int threadInitialization(uthread_func_t func, void *arg)
 	if (readyQueue == NULL || blockedQueue == NULL|| zombieQueue == NULL) {
 		return -1;
 	}
-	mainThread = (TCB*)malloc(sizeof(TCB));
+	TCB *mainThread = (TCB*)malloc(sizeof(TCB));
 	if (!mainThread) {
+		return -1;
+	}
+	mainThread -> threadContext = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+	if (!mainThread -> threadContext) {
 		return -1;
 	}
 	mainThread -> TID = threadCount++;
@@ -68,7 +71,7 @@ int threadInitialization(uthread_func_t func, void *arg)
 	}
 	mainThread -> threadState = RUNNING;
 	runningThread = mainThread;
-	contextInitCheck = uthread_ctx_init(&runningThread -> threadContext, runningThread -> stackPointer, func, arg);
+	contextInitCheck = uthread_ctx_init(runningThread -> threadContext, runningThread -> stackPointer, func, arg);
 	if (contextInitCheck == -1) {
 		return -1;
 	}
@@ -82,17 +85,16 @@ void uthread_yield(void)
 	// Get new ready thread and set it to running
 	queue_dequeue(readyQueue, (void **)&runningThread);
 	runningThread -> threadState = RUNNING;
-
 	// Store previous thread in the proper queue
 	if (oldThread -> threadState == BLOCKED) {
 		queue_enqueue(blockedQueue, oldThread);
-	} else {
+	} else if (oldThread -> threadState == RUNNING) {
 		oldThread -> threadState = READY;
 		queue_enqueue(readyQueue, oldThread);
 	}
 
 	// finally context switch into the new thread
-	uthread_ctx_switch(&oldThread -> threadContext, &runningThread -> threadContext);
+	uthread_ctx_switch(oldThread -> threadContext, runningThread -> threadContext);
 }
 
 uthread_t uthread_self(void)
@@ -114,6 +116,10 @@ int uthread_create(uthread_func_t func, void *arg)
 	if (!newThread) {
 		return -1;
 	}
+	newThread -> threadContext = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+	if (!newThread -> threadContext) {
+		return -1;
+	}
 	newThread -> TID = threadCount++;
 	if (threadCount >= USHRT_MAX) {
 		return -1;
@@ -123,13 +129,13 @@ int uthread_create(uthread_func_t func, void *arg)
 	if (!newThread -> stackPointer) {
 		return -1;
 	}
-	contextInitCheck = uthread_ctx_init(&newThread -> threadContext, newThread -> stackPointer, func, arg);
+	contextInitCheck = uthread_ctx_init(newThread -> threadContext, newThread -> stackPointer, func, arg);
 	if (contextInitCheck == -1) {
 		return -1;
-	} else {
-		queue_enqueue(readyQueue, newThread);
-		return newThread -> TID;
 	}
+	queue_enqueue(readyQueue, newThread);
+	return newThread -> TID;
+
 }
 
 void uthread_exit(int retval)
@@ -148,9 +154,7 @@ void uthread_exit(int retval)
 	// If no parent thread, it is a zombie.
 	runningThread -> threadState = ZOMBIE;
 	queue_enqueue(zombieQueue, runningThread);
-	TCB *oldThread = runningThread;
-	queue_dequeue(readyQueue, (void**)&runningThread);
-	uthread_ctx_switch(&oldThread -> threadContext, &runningThread -> threadContext);
+	uthread_yield();
 }
 
 int uthread_join(uthread_t tid, int *retval)
