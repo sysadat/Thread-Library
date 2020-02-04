@@ -161,6 +161,21 @@ void uthread_exit(int retval)
 	queue_enqueue(zombieQueue, runningThread);
 	uthread_yield();
 }
+/*
+ * uthread_join - Join a thread
+ * @tid: TID of the thread to join
+ * @retval: Address of an integer that will receive the return value
+ *
+ * This function makes the calling thread wait for the thread @tid to complete
+ * and assign the return value of the finished thread to @retval (if @retval is
+ * not NULL).
+ *
+ * A thread can be joined by only one other thread.
+ *
+ * Return: -1 if @tid is 0 (the 'main' thread cannot be joined), if @tid is the
+ * TID of the calling thread, if thread @tid cannot be found, or if thread @tid
+ * is already being joined. 0 otherwise.
+ */
 // Wait for threading system to terminate executing threads
 int uthread_join(uthread_t tid, int *retval)
 {
