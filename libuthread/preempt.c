@@ -14,12 +14,15 @@
  * Frequency of preemption
  * 100Hz is 100 times per second
  */
+ // Macros to allow quick change of frequency, without modifying rest of code
 #define HZ 100
 #define HZ_TO_MS 1000000
+#define INTERVAL HZ_TO_MS / HZ
 
-sigset_t signalSetter;
+// Global variables
 struct itimerval timerInterval;
 struct sigaction signalAction;
+sigset_t signalSetter;
 
 // Handler function to yield current thread
 static void sigvtalrmHandler(int signum)
@@ -47,20 +50,17 @@ void preempt_enable(void)
  * the current process to yield */
 void preempt_start(void)
 {
-	int interval = 0;
 
 	/* Set up handler so if we receive a SIGVTALRM alarm,
 	 * we will force the runningThread to yield */
-	memset(&signalAction, 0, sizeof(signalAction));
 	signalAction.sa_handler = &sigvtalrmHandler;
 	sigaction(SIGVTALRM, &signalAction, NULL);
 
 	/* Set up timer interal by dividing the frequency of preemption we want
 	 * by the amount of Hz in micro seconds*/
-	interval = HZ_TO_MS / HZ;
-	timerInterval.it_interval.tv_usec = interval;
+	timerInterval.it_interval.tv_usec = INTERVAL;
 	timerInterval.it_interval.tv_sec = 0;
-	timerInterval.it_value.tv_usec = interval;
+	timerInterval.it_value.tv_usec = INTERVAL;
 	timerInterval.it_value.tv_sec = 0;
 
 	/* Initialize timer, which will fire an alarm at 100hz */
