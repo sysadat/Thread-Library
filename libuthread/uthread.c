@@ -29,32 +29,36 @@ typedef struct{
 
 // Globals
 uthread_t threadCount = 0;
+TCB *runningThread;
 queue_t readyQueue;
 queue_t blockedQueue;
 queue_t zombieQueue;
-TCB *runningThread;
 
-// checks if a thread's TID is equal to a given tid
+// Checks if a thread's TID is equal to a given tid
 static int checkTID(void *thread, void *tid)
 {
 	TCB *givenThread = (TCB*)thread;
 	uthread_t givenTid = (uthread_t)(long)tid;
 	if (!givenThread || !givenTid) {
 		return -1;
-	} else {
-		return (givenThread ->TID == givenTid);
 	}
+	return (givenThread ->TID == givenTid);
+
 }
 
+/* Function to be caled to initialize the library by registering the so-far
+ * execution flow */
 int threadInitialization(uthread_func_t func, void *arg)
-{	//this needs comments
+{
 	int contextInitCheck = 0;
 	readyQueue = queue_create();
 	blockedQueue = queue_create();
 	zombieQueue = queue_create();
+	// Verify queues were properly created
 	if (readyQueue == NULL || blockedQueue == NULL|| zombieQueue == NULL) {
 		return -1;
 	}
+	// Create the main thread, and initialize everything inside it
 	TCB *mainThread = (TCB*)malloc(sizeof(TCB));
 	if (!mainThread) {
 		return -1;
@@ -69,6 +73,7 @@ int threadInitialization(uthread_func_t func, void *arg)
 	if (!mainThread -> stackPointer) {
 		return -1;
 	}
+	// Set the currently runningThread as main and make it RUNNING
 	mainThread -> threadState = RUNNING;
 	runningThread = mainThread;
 	contextInitCheck = uthread_ctx_init(runningThread -> threadContext, runningThread -> stackPointer, func, arg);
@@ -79,7 +84,7 @@ int threadInitialization(uthread_func_t func, void *arg)
 }
 void uthread_yield(void)
 {
-	// save currently running thread
+	// Store currently running thread
 	TCB *oldThread = runningThread;
 
 	// Get new ready thread and set it to running
@@ -92,18 +97,16 @@ void uthread_yield(void)
 		oldThread -> threadState = READY;
 		queue_enqueue(readyQueue, oldThread);
 	}
-
-	// finally context switch into the new thread
+	// Finally context switch into the new thread
 	uthread_ctx_switch(oldThread -> threadContext, runningThread -> threadContext);
 }
-
 uthread_t uthread_self(void)
 {
 	return runningThread -> TID;
 }
 
 int uthread_create(uthread_func_t func, void *arg)
-{//also needs comments
+{
 	int initCheck, contextInitCheck = 0;
 	// If called for the first time, initialize the thread
 	if (!threadCount) {
@@ -112,6 +115,7 @@ int uthread_create(uthread_func_t func, void *arg)
 			return -1;
 		}
 	}
+	// Create and initalize a new thread and set it to ready
 	TCB *newThread = (TCB*)malloc(sizeof(TCB));
 	if (!newThread) {
 		return -1;
@@ -135,7 +139,6 @@ int uthread_create(uthread_func_t func, void *arg)
 	}
 	queue_enqueue(readyQueue, newThread);
 	return newThread -> TID;
-
 }
 
 void uthread_exit(int retval)
@@ -143,8 +146,10 @@ void uthread_exit(int retval)
 	runningThread -> threadState = ZOMBIE;
 	runningThread -> retValue = retval;
 	TCB *parent = NULL;
+	/* Look through the blockedQueue to find the if the runningThread is
+	 *  there and return result in parent */
 	queue_iterate(blockedQueue, checkTID, (void*)&runningThread -> parentTID, (void**)&parent);
-	// if it has a parent, the parent will return to the readyQueue
+	// If it has a parent, the parent will return to the readyQueue
 	if (parent) {
 		parent -> threadState = READY;
 		parent -> retValue = retval;
@@ -156,9 +161,10 @@ void uthread_exit(int retval)
 	queue_enqueue(zombieQueue, runningThread);
 	uthread_yield();
 }
-
+// Wait for threading system to terminate executing threads
 int uthread_join(uthread_t tid, int *retval)
 {
+	// Check to make sure you can't join parent
 	if (!tid) {
 		return -1;
 	}
@@ -170,7 +176,7 @@ int uthread_join(uthread_t tid, int *retval)
 		}
 	}
 	if (0) {
-	printf("retval is: %p\n", retval);
+		printf("retval is: %p\n", retval);
 	}
 	return 0;
 	/* TODO Phase 3 */
