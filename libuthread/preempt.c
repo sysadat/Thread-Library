@@ -25,7 +25,7 @@ struct sigaction signalAction;
 static void sigvtalrmHandler(int signum)
 {
 	uthread_yield();
-	// Get error because signum is unused, so need this 
+	// Get error because signum is unused, so need this
 	if (0) {
 		printf("signum is: %d\n", signum);
 	}
