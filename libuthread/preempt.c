@@ -46,6 +46,7 @@ void preempt_enable(void)
  * process to yield */
 void preempt_start(void)
 {
+	int interval = 0;
 	/* Set up handler so if we receive a SIGVTALRM alarm,
 	 * we will force the runningThread to yield */
 	memset(&signalAction, 0, sizeof(signalAction));
@@ -54,9 +55,10 @@ void preempt_start(void)
 
 	/* Set up timer interal by dividing the frequency of preemption we want
 	 * by the amount of Hz in micro seconds*/
-	timerInterval.it_interval.tv_usec = HZ_TO_MS / HZ;
+	interval = HZ_TO_MS / HZ;
+	timerInterval.it_interval.tv_usec = interval;
 	timerInterval.it_interval.tv_sec = 0;
-	timerInterval.it_value.tv_usec = HZ_TO_MS / HZ;;
+	timerInterval.it_value.tv_usec = interval;
 	timerInterval.it_value.tv_sec = 0;
 
 	/* Initialize timer, which will fire an alarm at 100hz */
