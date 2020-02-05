@@ -5,7 +5,8 @@
 
 #include "queue.h"
 
-/* Inspired by https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A and https://www.geeksforgeeks.org/queue-linked-list-implementation */
+/* Inspired by https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A
+* and https://www.geeksforgeeks.org/queue-linked-list-implementation */
 
 typedef struct Node {
 	void *data;
@@ -33,12 +34,11 @@ queue_t queue_create(void)
 	struct queue *createdQueue = (struct queue*)malloc(sizeof(struct queue));
 	if (!createdQueue) {
 		return NULL;
-	} else {
-		createdQueue -> length = 0;
-		createdQueue -> head = NULL;
-		createdQueue -> tail = NULL;
-		return createdQueue;
 	}
+	createdQueue -> length = 0;
+	createdQueue -> head = NULL;
+	createdQueue -> tail = NULL;
+	return createdQueue;
 }
 
 //destroys and frees the queue
@@ -47,10 +47,10 @@ int queue_destroy(queue_t queue)
 	if (!queue || queue -> length > 0) {
 		//queue is NULL or queue is not empty
 		return -1;
-	} else {
-		free(queue);
-		return 0;
 	}
+	free(queue);
+	return 0;
+
 }
 
 // adds an item to the queue
