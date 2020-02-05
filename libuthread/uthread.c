@@ -43,7 +43,6 @@ static int checkTID(void *thread, void *tid)
 		return -1;
 	}
 	return (givenThread ->TID == givenTid);
-
 }
 
 /* Function to be caled to initialize the library by registering the so-far
@@ -80,10 +79,15 @@ int threadInitialization(uthread_func_t func, void *arg)
 	if (contextInitCheck == -1) {
 		return -1;
 	}
+	// Set up preemption after initialization
+	preempt_start();
 	return 0;
 }
 void uthread_yield(void)
 {
+	/* We are adding a new thread and are going to access the TCB and we
+	*  dont want to be preempted */
+	preempt_disable();
 	// Store currently running thread
 	TCB *oldThread = runningThread;
 
@@ -99,6 +103,11 @@ void uthread_yield(void)
 	}
 	// Finally context switch into the new thread
 	uthread_ctx_switch(oldThread -> threadContext, runningThread -> threadContext);
+
+	/* Preemption can be reenabled because the sensitive steps are done
+	 * and these steps can be interrupted and resumed without affecting
+	 * the shared data structures */
+	preempt_enable();
 }
 uthread_t uthread_self(void)
 {
@@ -115,6 +124,9 @@ int uthread_create(uthread_func_t func, void *arg)
 			return -1;
 		}
 	}
+	/* We are adding a new thread and are going to access the TCB and we
+	*  dont want to be preempted */
+	preempt_disable();
 	// Create and initalize a new thread and set it to ready
 	TCB *newThread = (TCB*)malloc(sizeof(TCB));
 	if (!newThread) {
@@ -137,18 +149,35 @@ int uthread_create(uthread_func_t func, void *arg)
 	if (contextInitCheck == -1) {
 		return -1;
 	}
+	/* Preemption can be reenabled because the sensitive steps are done
+	 * and these steps can be interrupted and resumed without affecting
+	 * the shared data structures */
+	preempt_enable();
 	queue_enqueue(readyQueue, newThread);
 	return newThread -> TID;
 }
 
 void uthread_exit(int retval)
 {
+	/* We are manipulating a shared data structure, so we want to
+	* disable preemption so that the process can be performed atomically */
+	preempt_disable();
 	runningThread -> threadState = ZOMBIE;
 	runningThread -> retValue = retval;
 	TCB *parent = NULL;
+	preempt_enable();
+	/* Preemption can be reenabled because the sensitive steps are done
+	 * and these steps can be interrupted and resumed without affecting
+	 * the shared data structures */
+
 	/* Look through the blockedQueue to find the if the runningThread is
 	 *  there and return result in parent */
 	queue_iterate(blockedQueue, checkTID, (void*)&runningThread -> parentTID, (void**)&parent);
+
+	/* We are manipulating a shared data structure, so we want to
+	* disable preemption so that the process can be performed atomically */
+	preempt_disable();
+
 	// If it has a parent, the parent will return to the readyQueue
 	if (parent) {
 		parent -> threadState = READY;
@@ -158,7 +187,12 @@ void uthread_exit(int retval)
 	}
 	// If no parent thread, it is a zombie.
 	runningThread -> threadState = ZOMBIE;
+	preempt_enable();
 	queue_enqueue(zombieQueue, runningThread);
+
+	/* Preemption can be reenabled because the sensitive steps are done
+	 * and these steps can be interrupted and resumed without affecting
+	 * the shared data structures */
 	uthread_yield();
 }
 /*
