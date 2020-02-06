@@ -216,7 +216,8 @@ int uthread_join(uthread_t tid, int *retval)
 	// Check to make sure you can't join parent
 	if (!tid) {
 		return -1;
-
+	}
+	printf("%p\n", retval);
 	return 0;
 	/* TODO Phase 3 */
 }
