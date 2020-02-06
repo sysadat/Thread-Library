@@ -149,7 +149,6 @@ int queue_length(queue_t queue)
 		return -1;
 	}
 	return queue -> length;
-
 }
 // Helper function to be called from other functions to help debug
 // static void queue_print(queue_t queue)

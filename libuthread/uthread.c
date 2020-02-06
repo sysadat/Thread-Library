@@ -28,7 +28,7 @@ typedef struct{
 } TCB;
 
 // Globals
-uthread_t threadCount = 0;
+uthread_t threadCount;
 TCB *runningThread;
 queue_t readyQueue;
 queue_t blockedQueue;
@@ -216,17 +216,7 @@ int uthread_join(uthread_t tid, int *retval)
 	// Check to make sure you can't join parent
 	if (!tid) {
 		return -1;
-	}
-	while (1) {
-		if (!queue_length(readyQueue)) {
-			break;
-		} else {
-			uthread_yield();
-		}
-	}
-	if (0) {
-		printf("retval is: %p\n", retval);
-	}
+
 	return 0;
 	/* TODO Phase 3 */
 }
