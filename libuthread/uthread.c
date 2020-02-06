@@ -213,8 +213,9 @@ void uthread_exit(int retval)
 // Wait for threading system to terminate executing threads
 int uthread_join(uthread_t tid, int *retval)
 {
-	// Check to make sure you can't join parent
-	if (!tid) {
+	/* Check to make sure you can't join main, the TID is not the same as
+	* the calling thread*/
+	if (!tid || tid == uthread_self()) {
 		return -1;
 	}
 	printf("%p\n", retval);
