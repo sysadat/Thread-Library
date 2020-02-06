@@ -20,8 +20,6 @@
 #define INTERVAL HZ_TO_MS / HZ
 
 // Global variables
-struct itimerval timerInterval;
-struct sigaction signalAction;
 sigset_t signalSetter;
 
 // Handler function to yield current thread
@@ -45,18 +43,20 @@ void preempt_enable(void)
 {
 	sigprocmask(SIG_UNBLOCK, &signalSetter, NULL);
 }
-
 /* Create a signal handler, which is a timer interrupt handler, that will force
  * the current process to yield */
 void preempt_start(void)
 {
+	struct itimerval timerInterval;
+	struct sigaction signalAction;
 
-	/* Set up handler so if we receive a SIGVTALRM alarm,
-	 * we will force the runningThread to yield */
-
+	 /* Initialize the signal to empty and then add the signal to the set,
+	  * idea came from Professor's Wednesday Slides */
 	sigemptyset(&signalSetter);
 	sigaddset(&signalSetter, SIGVTALRM);
 
+	/* Set up handler so if we receive a SIGVTALRM alarm,
+	 * we will force the runningThread to yield */
 	signalAction.sa_handler = &sigvtalrmHandler;
 	sigaction(SIGVTALRM, &signalAction, NULL);
 
