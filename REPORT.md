@@ -7,6 +7,8 @@ previous assignment. The only difference in this assignment was that we used a
 *doubly* linked list, in order to effectively implement the queue. The code we
 wrote in phase one was mostly a straightforward implementation of the specifics
 given in the assignment.
+[We used this resource to understand doubly linked lists](https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A)
+[And this website to understand the linked list implementation of a queue](https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A)
 
 The `createNewNode` function takes a data pointer, allocates memory for the
 node struct, initializes the next attribute to `NULL` and the data attribute to
@@ -51,18 +53,43 @@ of its length attribute.
 The `checkTID` function was created for usage in a `queue_iterate` call. It
 returns a 1 or 0 representing whether the thread's `TID` equals the given `TID`.
 
+The function `threadInitialization` takes a function and pointer to an argument
+as inputs. First, it creates the `readyQueue`, `blockedQueue`, and
+`zombieQueue`. It then initializes a `mainThread`: it allocates space for the
+`threadContext`, sets the `TID` to the `threadCount`, sets the `parentTID` to
+-1, sets the `stackPointer` to the pointer returned by the *given* function to
+allocate the stack, and sets the `threadState` to RUNNING. It then sets the
+`runningThread` to this newly initialized `mainThread` and initializes the
+context using the *given* function that takes the function and argument that
+were passed into `threadInitialization` as an input.
+
+Implementing `uthread_yield` was quite straightforward. We simply dequeue the
+next available thread from the `readyQueue`, set it as our `runningThread`, and
+set the `runningThread` state attribute as RUNNING. We then take the old
+thread and store it in the `blockedQueue` or `readyQueue` depending on the
+`threadState`. Finally, we context switch from the old thread into the new one.
+
 Implementing `uthread_self` was *incredibly* simple, just a one liner. We
 return the `TID` of the (global) `runningThread`.
 
-The implementation of `uthread_exit` was also quite simple. We first set
-the `retval` and set the `threadState` to a zombie state. We then check the
-`blockedQueue` for the parent of our current thread, and if it was blocked, we
-return it to a ready state and queue. We then context switch into the next
+The function `uthread_create` takes a function and argument as inputs. It first
+calls `threadInitialization` if no threads exist, allocates space for a thread
+struct, then in the struct: increments the `threadCount`, sets the state to
+READY, initializes the `stackPointer`. Finally, it enqueues this new thread.
+
+The implementation of `uthread_exit` was also quite simple. The function takes
+in a return value. We first take the `runningThread` and set the `retValue`
+attribute as given and the `threadState` to a zombie state. We then check the
+`blockedQueue` to find the parent of our current thread, and if it was blocked,
+we return it to a ready state and queue. We then context switch into the next
 ready thread.
 ### Phase 3:
 
 ### Phase 4:
 
 ### Testing:
-
+To test the queue, we created multiple functions to test various functionalities
+that we were expected to have. We assert that the return values are what we
+expect, to ensure that the functions are correct. We also check the resulting
+queue/node to ensure that the tested function has worked as expected.
 ### Final Notes:
