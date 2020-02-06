@@ -53,6 +53,10 @@ void preempt_start(void)
 
 	/* Set up handler so if we receive a SIGVTALRM alarm,
 	 * we will force the runningThread to yield */
+
+	sigemptyset(&signalSetter);
+	sigaddset(&signalSetter, SIGVTALRM);
+
 	signalAction.sa_handler = &sigvtalrmHandler;
 	sigaction(SIGVTALRM, &signalAction, NULL);
 
