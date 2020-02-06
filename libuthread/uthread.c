@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "context.h"
 #include "preempt.h"
@@ -25,6 +26,7 @@ typedef struct{
 	void *stackPointer;
 	unsigned short threadState;
 	int retValue;
+	bool joinCheck;
 } TCB;
 
 // Globals
@@ -38,12 +40,25 @@ queue_t zombieQueue;
 static int checkTID(void *thread, void *tid)
 {
 	TCB *givenThread = (TCB*)thread;
-	uthread_t givenTid = (uthread_t)(long)tid;
+	uthread_t *givenTid = (uthread_t*)tid;
 	if (!givenThread || !givenTid) {
+		printf("HERE!\n");
 		return -1;
 	}
-	return (givenThread ->TID == givenTid);
+	return (givenThread ->TID == *givenTid);
 }
+
+// static int joinHelper(void **childThread)
+// {
+// 	// Thread is already being joined
+// 	if (childThread -> joinCheck) {
+// 		return -1;
+// 	}
+// 	runningThread -> threadState = BLOCKED;
+// 	childThread -> parentTID = runningThread -> TID;
+// 	childThread -> joinCheck = true;
+// 	return 0;
+// }
 
 /* Function to be caled to initialize the library by registering the so-far
  * execution flow */
@@ -54,7 +69,7 @@ int threadInitialization(uthread_func_t func, void *arg)
 	blockedQueue = queue_create();
 	zombieQueue = queue_create();
 	// Verify queues were properly created
-	if (readyQueue == NULL || blockedQueue == NULL|| zombieQueue == NULL) {
+	if (!readyQueue || !blockedQueue|| !zombieQueue) {
 		return -1;
 	}
 	// Create the main thread, and initialize everything inside it
@@ -80,20 +95,20 @@ int threadInitialization(uthread_func_t func, void *arg)
 		return -1;
 	}
 	// Set up preemption after initialization
-	preempt_start();
+	// preempt_start();
 	return 0;
 }
 void uthread_yield(void)
 {
 	/* We are adding a new thread and are going to access the TCB and we
 	*  dont want to be preempted */
-	preempt_disable();
+	// preempt_disable();
 	// Store currently running thread
 	TCB *oldThread = runningThread;
 
 	// Get new ready thread and set it to running
-	queue_dequeue(readyQueue, (void **)&runningThread);
-	runningThread -> threadState = RUNNING;
+	// queue_dequeue(readyQueue, (void **)&runningThread);
+	// runningThread -> threadState = RUNNING;
 	// Store previous thread in the proper queue
 	if (oldThread -> threadState == BLOCKED) {
 		queue_enqueue(blockedQueue, oldThread);
@@ -101,13 +116,15 @@ void uthread_yield(void)
 		oldThread -> threadState = READY;
 		queue_enqueue(readyQueue, oldThread);
 	}
+	queue_dequeue(readyQueue, (void **)&runningThread);
+	runningThread -> threadState = RUNNING;
 	// Finally context switch into the new thread
 	uthread_ctx_switch(oldThread -> threadContext, runningThread -> threadContext);
 
 	/* Preemption can be reenabled because the sensitive steps are done
 	 * and these steps can be interrupted and resumed without affecting
 	 * the shared data structures */
-	preempt_enable();
+	// preempt_enable();
 }
 uthread_t uthread_self(void)
 {
@@ -126,7 +143,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	}
 	/* We are adding a new thread and are going to access the TCB and we
 	*  dont want to be preempted */
-	preempt_disable();
+	// preempt_disable();
 	// Create and initalize a new thread and set it to ready
 	TCB *newThread = (TCB*)malloc(sizeof(TCB));
 	if (!newThread) {
@@ -152,7 +169,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	/* Preemption can be reenabled because the sensitive steps are done
 	 * and these steps can be interrupted and resumed without affecting
 	 * the shared data structures */
-	preempt_enable();
+	// preempt_enable();
 	queue_enqueue(readyQueue, newThread);
 	return newThread -> TID;
 }
@@ -161,11 +178,11 @@ void uthread_exit(int retval)
 {
 	/* We are manipulating a shared data structure, so we want to
 	* disable preemption so that the process can be performed atomically */
-	preempt_disable();
+	// preempt_disable();
 	runningThread -> threadState = ZOMBIE;
 	runningThread -> retValue = retval;
 	TCB *parent = NULL;
-	preempt_enable();
+	// preempt_enable();
 	/* Preemption can be reenabled because the sensitive steps are done
 	 * and these steps can be interrupted and resumed without affecting
 	 * the shared data structures */
@@ -176,18 +193,19 @@ void uthread_exit(int retval)
 
 	/* We are manipulating a shared data structure, so we want to
 	* disable preemption so that the process can be performed atomically */
-	preempt_disable();
+	// preempt_disable();
 
 	// If it has a parent, the parent will return to the readyQueue
 	if (parent) {
 		parent -> threadState = READY;
 		parent -> retValue = retval;
+		printf("DELETING \n");
 		queue_delete(blockedQueue, parent);
 		queue_enqueue(readyQueue, parent);
 	}
 	// If no parent thread, it is a zombie.
 	runningThread -> threadState = ZOMBIE;
-	preempt_enable();
+	// preempt_enable();
 	queue_enqueue(zombieQueue, runningThread);
 
 	/* Preemption can be reenabled because the sensitive steps are done
@@ -195,30 +213,109 @@ void uthread_exit(int retval)
 	 * the shared data structures */
 	uthread_yield();
 }
-/*
- * uthread_join - Join a thread
- * @tid: TID of the thread to join
- * @retval: Address of an integer that will receive the return value
- *
- * This function makes the calling thread wait for the thread @tid to complete
- * and assign the return value of the finished thread to @retval (if @retval is
- * not NULL).
- *
- * A thread can be joined by only one other thread.
- *
- * Return: -1 if @tid is 0 (the 'main' thread cannot be joined), if @tid is the
- * TID of the calling thread, if thread @tid cannot be found, or if thread @tid
- * is already being joined. 0 otherwise.
- */
+
 // Wait for threading system to terminate executing threads
 int uthread_join(uthread_t tid, int *retval)
 {
+	TCB *childThread = NULL;
 	/* Check to make sure you can't join main, the TID is not the same as
-	* the calling thread*/
-	if (!tid || tid == uthread_self()) {
+	* the calling thread, or if the TID can't be found*/
+	if (!tid || tid == uthread_self() || tid >= threadCount) {
+		printf("returning\n");
 		return -1;
 	}
-	printf("%p\n", retval);
+	// int joinHelperCheck = 0;
+	//  Check ready queue to see if it was found
+	// TCB *childThread = (TCB*)malloc(sizeof(TCB));
+	// childThread = runningThread;
+	// TCB *childThread;
+	printf("ready child thread is: %p\n", childThread);
+
+	queue_iterate(readyQueue, checkTID, (void*)&tid, (void**)&childThread);
+	printf("child thread is: %p\n", childThread);
+	// preempt_disable();
+	if (childThread != NULL) {
+		printf("reached ready case\n");
+		printf("ready child thread is: %p\n", childThread);
+		// joinHelperCheck = joinHelper((void**)&childThread));
+		// if (joinHelperCheck == -1) {
+		// 	return -1;
+		// }
+
+		// Thread is already being joined
+		if (childThread -> joinCheck) {
+			return -1;
+		}
+		runningThread -> threadState = BLOCKED;
+		childThread -> parentTID = runningThread -> TID;
+		childThread -> joinCheck = true;
+
+		// Make the calling thread wait until thread TID finishes
+		uthread_yield();
+
+		/* If the retval is not null, the return value of the finished
+		 * thread is now retval */
+		if (retval) {
+			*retval = runningThread -> retValue;
+		}
+	} else {
+		// Check blocked queue to see if it was found
+		queue_iterate(blockedQueue, checkTID, (void*)&tid, (void**)&childThread);
+		printf("reached blocked case\n");
+		printf("blocked child thread is: %p\n", childThread);
+			if (childThread!= NULL) {
+				printf("reached blocked case 2\n");
+
+				// Thread is already being joined
+				if (childThread -> joinCheck) {
+					return -1;
+				}
+				runningThread -> threadState = BLOCKED;
+				childThread -> parentTID = runningThread -> TID;
+				childThread -> joinCheck = true;
+				/* Make the calling thread wait until thread
+				 * TID finishes */
+				uthread_yield();
+
+				/* If the retval is not null, the return value
+				 * of the finished thread is now retval */
+				if (retval) {
+					*retval = runningThread -> retValue;
+				}
+			} else {
+				// Check zombie queue to see if it was found
+				queue_iterate(zombieQueue, checkTID, (void*)&tid, (void**)&childThread);
+				if (childThread != NULL) {
+					printf("reached zombie case\n");
+					printf("zombie child thread is: %p\n", childThread);
+					uthread_ctx_destroy_stack(childThread -> stackPointer);
+					free(childThread);
+					queue_delete(zombieQueue, childThread);
+					if (retval) {
+						*retval = runningThread -> retValue;
+					}
+				}
+		}
+	}
+	// preempt_enable();
 	return 0;
-	/* TODO Phase 3 */
 }
+// int uthread_join(uthread_t tid, int *retval)
+// {
+// 	/* TODO Phase 2 */
+// 	if (!tid) {
+// 		return -1;
+// 	}
+// 	if (0) {
+// 		printf("%p\n", retval);
+// 	}
+// 	while (1) {
+// 		if (!queue_length(readyQueue)) {
+// 			break;
+// 		} else {
+// 			uthread_yield();
+// 		}
+// 	}
+// 	return 0;
+// 	/* TODO Phase 3 */
+// }

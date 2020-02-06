@@ -18,7 +18,15 @@ struct queue {
 	Node *head;
 	Node *tail;
 };
-
+// Helper function to be called from other functions to help debug
+void queue_print(queue_t queue)
+{
+	Node *current = queue -> head;
+	while(current != NULL) {
+		printf("Item is: %p\n", current -> data);
+		current = current -> next;
+	}
+}
 //initalizes a new node
 Node *createNewNode(void *data)
 {
@@ -96,24 +104,29 @@ int queue_dequeue(queue_t queue, void **data)
 
 int queue_delete(queue_t queue, void *data)
 {
+	printf("FROM QUEUE: @line : %d\n", __LINE__);
 	if (!queue || !data) {
 		return -1;
 	}
+	printf("FROM QUEUE: @line : %d\n", __LINE__);
 	// If the head is the data, then remove the head
 	Node *prevNode = queue -> head;
+	printf("FROM QUEUE: @line : %d\n", __LINE__);
 	if (prevNode -> data == data) {
 		queue -> length -= 1;
 		queue -> head = prevNode -> next;
-		free(prevNode);
+		// free(prevNode);
 		return 0;
 	}
+	printf("FROM QUEUE: @line : %d\n", __LINE__);
 	// Otherwise, we remove the fist occurence
-	Node *currNode = prevNode -> next;
+	Node *currNode = queue ->head -> next;
+	printf("FROM QUEUE: @line : %d\n", __LINE__);
 	while(currNode != NULL) {
 		if (currNode -> data == data) {
 			queue -> length -= 1;
 			prevNode -> next = currNode -> next;
-			free(currNode);
+			// free(currNode);
 			return 0;
 		}
 		prevNode = prevNode -> next;
@@ -150,12 +163,3 @@ int queue_length(queue_t queue)
 	}
 	return queue -> length;
 }
-// Helper function to be called from other functions to help debug
-// static void queue_print(queue_t queue)
-// {
-// 	Node *current = queue -> head;
-// 	while(current != NULL) {
-// 		printf("Item is: %p\n", current -> data);
-// 		current = current -> next;
-// 	}
-// }
