@@ -9,7 +9,6 @@ int thread1(void* arg)
 	while(1) {
 		printf("At thread1\n");
 	}
-	return 1;
 }
 
 int main (void)

@@ -136,4 +136,6 @@ are correct.
 To test `checkTID` we called it on a newly created thread along with the known
 TID of that thread to ensure it will return `TRUE` as a result.
 
-### Final Notes:
+To test preemption, we created an infinite loop in a thread with no yields,
+exits, or returns. After a certain amount of time, it says "Virtual timer
+expired" and stops execution. This shows that our preemption worked. 
