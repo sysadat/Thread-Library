@@ -3,6 +3,9 @@
  *
  * Tests the creation of multiples threads and if join
  * recieves the correct return value.
+ * Expected output is:
+ * thread1
+ * thread2
  */
 
 #include <stdio.h>
@@ -35,7 +38,7 @@ int main(void)
 	int ret;
 	uthread_t tid;
 
-	tid = uthread_create(thread1, NULL)
+	tid = uthread_create(thread1, NULL);
 	uthread_join(tid , &ret);
 	if (ret != 1){
 		printf("ERROR: WRONG RETURN VALUE\n");

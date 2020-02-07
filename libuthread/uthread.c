@@ -37,7 +37,7 @@ queue_t blockedQueue;
 queue_t zombieQueue;
 
 // Checks if a thread's TID is equal to a given tid
-static int checkTID(void *thread, void *tid)
+int checkTID(void *thread, void *tid)
 {
 	TCB *givenThread = (TCB*)thread;
 	uthread_t *givenTid = (uthread_t*)tid;
