@@ -8,7 +8,8 @@ programs := \
 	uthread_exist.x \
 	uthread_multiThread.x \
 	uthread_self.x \
-	uthread_yield.x
+	uthread_yield.x \
+	test_preempt.x
 
 ## *** IMPORTANT *** ##
 ##	You should NOT have to modify anything below
