@@ -2,52 +2,56 @@
 ## User-Level Thread Library
 
 ### Phase 1:
-Implementing the queue was quite simple after our usage of linked lists in the
-previous assignment. The only difference in this assignment was that we used a
-*doubly* linked list, in order to effectively implement the queue. The code we
-wrote in phase one was mostly a straightforward implementation of the specifics
-given in the assignment.
+Implementing the queue was quite simple after our experience using linked lists
+in the previous assignment. The only difference in this assignment was that we
+used a *doubly* linked list, in order to effectively implement the queue. The
+code we wrote in phase one was mostly a straightforward implementation of the
+specifics given in the assignment.
 [We used this resource to understand doubly linked lists](https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A)
 [And this website to understand the linked list implementation of a queue](https://gist.github.com/mycodeschool/7429492?fbclid=IwAR24iiE892i0ILBeKzcquCkKj8n5u3_x6Kc_2wLRPX_NyDm7jrq_ZhfhM5A)
 
 The `createNewNode` function takes a data pointer, allocates memory for the
-node struct, initializes the next attribute to `NULL` and the data attribute to
-the data input. The return value is a pointer to the new node.
+node struct, initializes the `next` attribute to `NULL` and the `data`
+attribute to the data input. The return value is a pointer to the new node.
 
 The `queue_create` function takes no input, but works in a similar way. It
-allocates memory for the queue struct, initializes the head and tail attributes
-to `NULL` and the length attribute to 0, and returns a pointer to the queue.
+allocates memory for the queue struct, initializes the `head` and `tail`
+attributes to `NULL` and the length attribute to 0, and returns a pointer to
+the queue.
 
 The `queue_destroy` function simply checks if the queue is empty, and if it is,
 it frees the memory of the queue struct.
 
 The `queue_enqueue` function takes a queue and data to be queued. It first calls
-`createNewNode` on the data, then takes the new node and adds it to the given
-queue. If the queue was previously empty, it assigns the data to the head, and
-otherwise to the tail. It also increments the length attribute of the queue.
+`createNewNode` with the data as an argument, then adds the new node to the
+given queue. If the queue was previously empty, it assigns the node to the
+head, and otherwise to the tail. It also increments the `length` attribute of
+the queue.
 
 The `queue_dequeue` function takes a queue and double pointer to a variable
-to store the data that is popped from the queue. It simply takes the value in
-head attribute of the queue, storing it in the passed pointer, and changes the
-head of the queue to the next node in the queue by accessing the head node next
-attribute. The queue length attribute is also decremented. If the dequeue has
-popped off the last item in the queue, the tail is set to `NULL`.
+for storing the data that will be popped from the queue. It simply takes the
+value in the `head` attribute of the queue, storing it in the passed pointer,
+and changes the head of the queue to the next node in the queue by accessing the
+head node's `next` attribute. The queue `length` attribute is then decremented.
+If the dequeue has popped off the last item in the queue, the tail is set to
+`NULL`.
 
-The `queue_delete` function takes a queue and data, iterates through the queue
-and searches for the first node that has a data attribute that matches the data
-input. It then removes that node, linking the node before it to the node after
-it, then frees the node.
+The `queue_delete` function takes a queue and some data. It iterates through
+the queue, searching for the first node that has a data attribute matching the
+data input. It then removes that node, linking the node before it to the node
+after it, then frees the removed node.
 
 The `queue_iterate` function takes a queue, a function, an argument, and a
-double pointer to a variable to store the returned data. The function
+double pointer to a variable for storing the returned data. The function
 iterates through all elements of the queue, calling the given function with the
 data of the current node in the queue as the first argument, and the argument
 passed to `queue_iterate` as the second argument. If the function returns a 1,
-the iteration stops, and the pointer to the variable is set to the pointer of
-the data attribute of the current node.
+the iteration stops, and the pointer to the variable (given as an input) is set
+to the pointer of the `data` attribute of the current node. This essentially
+just returns the data in the first node that causes the function to return a 1.
 
 The `queue_length` function takes a queue struct and simply returns the value
-of its length attribute.
+of its `length` attribute.
 
 ### Phase 2:
 The `checkTID` function was created for usage in a `queue_iterate` call. It
@@ -76,7 +80,7 @@ The function `uthread_create` takes a function and argument as inputs. It first
 calls `threadInitialization` if no threads exist, allocates space for a thread
 struct, then in the struct: increments the `threadCount`, sets the state to
 `READY`, and initializes the `stackPointer`. Finally, it enqueues this new
-thread.
+thread in the `readyQueue`.
 
 The implementation of `uthread_exit` was also quite simple. The function takes
 in a return value. We first take the `runningThread` and set the `retValue`
@@ -90,7 +94,7 @@ The entirety of phase 3 was a single function `uthread_join`. For inputs, the
 function takes a `TID` and a pointer to a variable to store the return value.
 First, we check to ensure the following: we are not joining main, the `TID` is
 not the same as the `runningThread`, and the `TID` was properly passed in.
-Next, we use `queue_iterate` to find the given TID in our `readyQueue`. If
+Next, we use `queue_iterate` to find the given `TID` in our `readyQueue`. If
 found, this thread is a child of the `runningThread`, and we now need to join
 the parent and child. We first check if the child is being joined elsewhere,
 and stop if yes. We set the `runningThread` to a `BLOCKED` state, set the
@@ -125,17 +129,18 @@ interval to the computed `INTERVAL` and initializes the timer to 0.
 ### Testing:
 To test the queue, we created multiple functions to test various functionalities
 that we were expected to have. We check that the return values are what we
-expect, to verify that the functions work properly. We also check the resulting
-queue/node to further ensure that the tested function has worked as expected.
+expect, to verify that the functions work properly. To further verify our
+results, we check the resulting queue/node (when possible) to ensure that the
+tested function has worked as expected. We also have a "NULL" test that
+tests all our functions with `NULL` inputs to ensure errors are handled
+properly.
 
 To test `uthread_join` we made two nested threads, each with a print to
 identify the order at which they were executed to see that joining works as
-intended. We also verify the return values of each thread to make ensure they
-are correct.
-
-To test `checkTID` we called it on a newly created thread along with the known
-TID of that thread to ensure it will return `TRUE` as a result.
+intended. We also verify the return values of each thread to make ensure that a
+join call returns the correct value.
 
 To test preemption, we created an infinite loop in a thread with no yields,
 exits, or returns. After a certain amount of time, it says "Virtual timer
-expired" and stops execution. This shows that our preemption worked. 
+expired" and stops the execution. This interruption shows that our preemption
+works as expected.

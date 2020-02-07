@@ -13,20 +13,20 @@
 /*
  * Frequency of preemption
  * 100Hz is 100 times per second
- *Macros allow quick changes to the frequency without modifying the rest of the code
+ * Macros allow quick changes to the frequency without modifying the rest of the code
  */
 #define HZ 100
 #define HZ_TO_MS 1000000
 #define INTERVAL HZ_TO_MS / HZ
 
-// Global variables
+// Global variable
 sigset_t signalSetter;
 
 // Handler function to yield current thread
 static void sigvtalrmHandler(int signum)
 {
 	uthread_yield();
-	// we might get an error if signum is unused, so we check
+	// we may get an error if signum is unused, so we check for one:
 	if (0) {
 		printf("signum is: %d\n", signum);
 	}
@@ -43,13 +43,14 @@ void preempt_enable(void)
 {
 	sigprocmask(SIG_UNBLOCK, &signalSetter, NULL);
 }
-/* Create a signal handler, which is a timer interrupt handler, that will force the current process to yield */
+
+// Create a signal handler, which is a timer interrupt handler, that will force the current process to yield
 void preempt_start(void)
 {
 	struct itimerval timerInterval;
 	struct sigaction signalAction;
 
-	 /* Initialize the signal to empty and then add the signal to the set, idea from Professor's Wednesday Slides */
+	 /* Initialize the signal to empty and then add the signal to the set. Idea from Professor's Wednesday Slides */
 	sigemptyset(&signalSetter);
 	sigaddset(&signalSetter, SIGVTALRM);
 
@@ -57,7 +58,7 @@ void preempt_start(void)
 	signalAction.sa_handler = &sigvtalrmHandler;
 	sigaction(SIGVTALRM, &signalAction, NULL);
 
-	/* Set up timer interal by dividing the frequency of preemption we want by the amount of Hz in micro seconds*/
+	/* Set up timer interal by dividing the frequency of preemption we want in Hz by the amount of micro seconds in a Hz*/
 	timerInterval.it_interval.tv_usec = INTERVAL;
 	timerInterval.it_interval.tv_sec = 0;
 	timerInterval.it_value.tv_usec = INTERVAL;
