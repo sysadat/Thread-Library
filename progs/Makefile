@@ -5,8 +5,10 @@ programs := \
 	uthread_hello.x \
 	uthread_join.x \
 	uthread_checkTID.x \
+	uthread_exist.x \
+	uthread_multiThread.x \
+	uthread_self.x \
 	uthread_yield.x
-
 
 ## *** IMPORTANT *** ##
 ##	You should NOT have to modify anything below
