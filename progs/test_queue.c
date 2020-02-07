@@ -66,9 +66,6 @@ void test_destroy(void)
 	q = queue_create();
 	queue_enqueue(q, &data);
 	TEST_ASSERT(queue_destroy(q) == -1);
-
-	//Check to see that it will return -1 if given a NULL queue
-	TEST_ASSERT(queue_destroy(NULL) == -1);
 }
 
 void test_enqueue(void)
@@ -81,16 +78,16 @@ void test_enqueue(void)
 	int data3 = 3;
 	q = queue_create();
 
-	// Check that it returns 0 if data was enqueued properly
-	TEST_ASSERT(queue_enqueue(q, &data1) == 0);
+	// enqueue data1
+	queue_enqueue(q, &data1);
 	// check if the value in the queue is the value we enqueued
 	TEST_ASSERT(q -> tail -> data == &data1);
-	// Check that it returns 0 if data was enqueued properly
-	TEST_ASSERT(queue_enqueue(q, &data2) == 0);
+	// enqueue data2
+	queue_enqueue(q, &data2);
 	// check if the value in the queue is the value we enqueued
 	TEST_ASSERT(q -> tail -> data== &data2);
-	// Check that it returns 0 if data was enqueued properly
-	TEST_ASSERT(queue_enqueue(q, &data3) == 0);
+	// enqueue data3
+	queue_enqueue(q, &data3);
 	// check that the values in the queue are correct
 	TEST_ASSERT(q -> tail -> data == &data3);
 	// check that the values in the queue are correct
@@ -98,10 +95,6 @@ void test_enqueue(void)
 	// check that the length of the queue is correct
 	TEST_ASSERT(q -> length == 3);
 
-	// Check if returns -1 if data is null
-	TEST_ASSERT(queue_enqueue(q, NULL) == -1);
-	// Check if returns -1 if queue is null
-	TEST_ASSERT(queue_enqueue(NULL, &data1) == -1);
 }
 
 void test_dequeue(void)
@@ -130,13 +123,9 @@ void test_dequeue(void)
 	// Check that it dequeued the correct (oldest) data
 	queue_dequeue(q, (void**)&ptr);
 	TEST_ASSERT(ptr == &data3);
-	// Check that it returns -1 if there is nothing left to dequeue
+	// Check that queue_dequeue returns -1 if there is nothing left to dequeue
 	TEST_ASSERT(queue_dequeue(q, (void**)&ptr)==-1);
 
-	// Check if returns -1 if data is null
-	TEST_ASSERT(queue_dequeue(q, NULL) == -1);
-	// Check if returns -1 if queue is null
-	TEST_ASSERT(queue_dequeue(NULL, (void**)&ptr) == -1);
 }
 void test_delete(void)
 {
@@ -151,22 +140,19 @@ void test_delete(void)
 	queue_enqueue(q, &data2);
 	queue_enqueue(q, &data3);
 
-	// Check that it returns 0 if data was deleted properly
-	TEST_ASSERT(queue_delete(q, &data2) == 0);
+	//check to see if the queue was deleted successfully
+	TEST_ASSERT(queue_delete(q, &data2)==0);
 	// check that the length of the queue is correct
 	TEST_ASSERT(q -> length == 2);
 	// check if delete worked properly
 	TEST_ASSERT(q -> head -> data == &data1);
 	// check if delete worked properly
 	TEST_ASSERT(q -> tail -> data == &data3);
-	// Check that it returns -1 if data was not found (it was deleted)
-	TEST_ASSERT(queue_delete(q, &data2) == -1);
+	// Check that data2 was deleted: it should return -1
+	TEST_ASSERT(queue_delete(q, &data2)==-1);
 	// check that the length was not changed
 	TEST_ASSERT(q -> length == 2);
 
-	// Check if queue_delete returns -1 if the data or queue is NULL
-	TEST_ASSERT(queue_delete(q, NULL) == -1);
-	TEST_ASSERT(queue_delete(NULL, &data1) == -1);
 }
 
 void test_iterator(void)
@@ -193,10 +179,6 @@ void test_iterator(void)
 	TEST_ASSERT(ptr != NULL);
 	TEST_ASSERT(*ptr == 5);
 	TEST_ASSERT(ptr == &data[3]);
-
-	//check if -1 is returned if the queue or function is NULL
-	TEST_ASSERT(queue_iterate(q, NULL, (void*)5, (void**)&ptr)==-1);
-	TEST_ASSERT(queue_iterate(NULL, find_item, (void*)5, (void**)&ptr)==-1);
 
 }
 
@@ -228,8 +210,40 @@ void test_length(void)
 	testLength = queue_length(q);
 	TEST_ASSERT(testLength == 1);
 
-	//check to make sure -1 is returned if the queue is NULL
+}
+
+void test_NULL(void)
+{
+	fprintf(stderr, "*** TESTING NULL errors ***\n");
+
+	queue_t q;
+	int data1 = 1;
+	int *ptr;
+
+	q = queue_create();
+
+
+	// Check if queue_delete returns -1 if the data or queue is NULL
+	TEST_ASSERT(queue_delete(q, NULL) == -1);
+	TEST_ASSERT(queue_delete(NULL, &data1) == -1);
+	//check to make sure length -1 is returned if the queue is NULL
 	TEST_ASSERT(queue_length(NULL)== -1);
+	//check if -1 is returned if the queue or function is NULL
+	TEST_ASSERT(queue_iterate(q, NULL, (void*)5, (void**)&ptr)==-1);
+	TEST_ASSERT(queue_iterate(NULL, find_item, (void*)5, (void**)&ptr)==-1);
+	// Check if queue_enqueue returns -1 if data is null
+	TEST_ASSERT(queue_enqueue(q, NULL) == -1);
+	// Check if queue_enqueue returns -1 if queue is null
+	TEST_ASSERT(queue_enqueue(NULL, &data1) == -1);
+	// Check if queue_dequeue returns -1 if data is null
+	TEST_ASSERT(queue_dequeue(q, NULL) == -1);
+	// Check if queue_dequeue returns -1 if queue is null
+	TEST_ASSERT(queue_dequeue(NULL, (void**)&ptr) == -1);
+	//Check to see that queue_destroy will return -1 if given a NULL queue
+	TEST_ASSERT(queue_destroy(NULL) == -1);
+
+
+
 }
 
 /*queue_simple checks the result of a simple enqueue/dequeue scenario*/
@@ -302,8 +316,10 @@ int main (void)
 	test_delete();
 	test_iterator();
 	test_length();
+	test_NULL();
 	test_queue_simple();
 	test_elaborate();
 	test_print();
+
 	return 0;
 }
