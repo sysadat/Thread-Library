@@ -16,10 +16,29 @@
 
 #include <uthread.h>
 
-int thread5(void* arg)
+int thread7(void* arg)
 {
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
+	return 0;
+}
+
+int thread6(void* arg)
+{
+	uthread_create(thread7, NULL);
+	uthread_yield();
+	printf("thread%d\n", uthread_self());
+	uthread_yield();
+	return 0;
+}
+
+int thread5(void* arg)
+{
+	uthread_create(thread6, NULL);
+	uthread_yield();
+	printf("thread%d\n", uthread_self());
+	uthread_yield();
+	uthread_yield();
 	return 0;
 }
 
@@ -28,6 +47,9 @@ int thread4(void* arg)
 	uthread_create(thread5, NULL);
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
+	uthread_yield();
+	uthread_yield();
+	uthread_yield();
 	return 0;
 }
 int thread3(void* arg)
@@ -35,6 +57,9 @@ int thread3(void* arg)
 	uthread_create(thread4, NULL);
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
+	uthread_yield();
+	uthread_yield();
+	uthread_yield();
 	uthread_yield();
 	return 0;
 }
@@ -46,6 +71,9 @@ int thread2(void* arg)
 	printf("thread%d\n", uthread_self());
 	uthread_yield();
 	uthread_yield();
+	uthread_yield();
+	uthread_yield();
+	uthread_yield();
 	return 0;
 }
 
@@ -54,6 +82,9 @@ int thread1(void* arg)
 	uthread_create(thread2, NULL);
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
+	uthread_yield();
+	uthread_yield();
+	uthread_yield();
 	uthread_yield();
 	uthread_yield();
 	uthread_yield();
