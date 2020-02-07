@@ -1,4 +1,5 @@
-/*
+/* Uthread Exists
+ *
  * Test to see if we join with a thread that does not exist
  *
  */

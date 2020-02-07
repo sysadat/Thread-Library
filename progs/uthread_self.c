@@ -1,4 +1,5 @@
-/*
+/* Uthread self
+ *
  * Test to see if we join with a thread with itself
  *
  */
