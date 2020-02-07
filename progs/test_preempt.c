@@ -19,6 +19,5 @@ int main (void)
 
 	tid = uthread_create(thread1, NULL);
 	uthread_join(tid, &ret);
-	printf("Back to main\n");
 	return 0;
 }

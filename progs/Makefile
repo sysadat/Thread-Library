@@ -4,7 +4,6 @@ programs := \
 	test_queue.x \
 	uthread_hello.x \
 	uthread_join.x \
-	uthread_checkTID.x \
 	uthread_exist.x \
 	uthread_multiThread.x \
 	uthread_self.x \
