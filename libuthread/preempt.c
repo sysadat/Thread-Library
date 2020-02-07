@@ -13,8 +13,8 @@
 /*
  * Frequency of preemption
  * 100Hz is 100 times per second
+ *Macros allow quick changes to the frequency without modifying the rest of the code
  */
- // Macros to allow quick change of frequency, without modifying rest of code
 #define HZ 100
 #define HZ_TO_MS 1000000
 #define INTERVAL HZ_TO_MS / HZ
@@ -26,7 +26,7 @@ sigset_t signalSetter;
 static void sigvtalrmHandler(int signum)
 {
 	uthread_yield();
-	// Get error because signum is unused, so need this
+	// we might get an error if signum is unused, so we check
 	if (0) {
 		printf("signum is: %d\n", signum);
 	}
@@ -43,30 +43,26 @@ void preempt_enable(void)
 {
 	sigprocmask(SIG_UNBLOCK, &signalSetter, NULL);
 }
-/* Create a signal handler, which is a timer interrupt handler, that will force
- * the current process to yield */
+/* Create a signal handler, which is a timer interrupt handler, that will force the current process to yield */
 void preempt_start(void)
 {
 	struct itimerval timerInterval;
 	struct sigaction signalAction;
 
-	 /* Initialize the signal to empty and then add the signal to the set,
-	  * idea came from Professor's Wednesday Slides */
+	 /* Initialize the signal to empty and then add the signal to the set, idea from Professor's Wednesday Slides */
 	sigemptyset(&signalSetter);
 	sigaddset(&signalSetter, SIGVTALRM);
 
-	/* Set up handler so if we receive a SIGVTALRM alarm,
-	 * we will force the runningThread to yield */
+	/* Set up handler so if we receive a SIGVTALRM alarm, we will force the runningThread to yield */
 	signalAction.sa_handler = &sigvtalrmHandler;
 	sigaction(SIGVTALRM, &signalAction, NULL);
 
-	/* Set up timer interal by dividing the frequency of preemption we want
-	 * by the amount of Hz in micro seconds*/
+	/* Set up timer interal by dividing the frequency of preemption we want by the amount of Hz in micro seconds*/
 	timerInterval.it_interval.tv_usec = INTERVAL;
 	timerInterval.it_interval.tv_sec = 0;
 	timerInterval.it_value.tv_usec = INTERVAL;
 	timerInterval.it_value.tv_sec = 0;
 
-	/* Initialize timer, which will fire an alarm at 100hz */
+	/* Initialize timer to fire an alarm every 100hz */
 	setitimer(ITIMER_VIRTUAL, &timerInterval, NULL);
 }
