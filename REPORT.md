@@ -140,7 +140,20 @@ identify the order at which they were executed to see that joining works as
 intended. We also verify the return values of each thread to make ensure that a
 join call returns the correct value.
 
-To test preemption, we created an infinite loop in a thread with no yields,
-exits, or returns. After a certain amount of time, it says "Virtual timer
-expired" and stops the execution. This interruption shows that our preemption
-works as expected.
+Similarly, we checked the order of the print values in the test `uthread_self`.
+
+A simple test was `uthread_self`, where we attempted to join our own thread and
+expected a error.
+
+Another simple test was `uthread_exist`, where we attempted to join a non
+existent thread and expected a error.
+
+Another test was `uthread_multiThread`, where we kept adding threads and made
+sure that nothing broke.
+
+To test preemption, we created an infinite loop in main and one in a thread
+with no yields, exits, or returns. After a certain amount of time, the print
+statement changes to the other one, indicating an interruption. Also, the
+entire executable stops after a while and prints "Virtual Timer Expired". As
+we used no yields or joins, these interruptions prove our preemption works as
+expected.

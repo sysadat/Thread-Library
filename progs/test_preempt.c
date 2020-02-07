@@ -1,8 +1,8 @@
 /*
  * Preempt test
  *
- * Created a thread with an infinite loop and joins, and checks to see if
- * if we can break out from that thread
+ * Created a two infinite printing thread with no yeilds or exits
+ * if we can break out from either thread, it means preemption works
 */
 
 #include <stdio.h>
