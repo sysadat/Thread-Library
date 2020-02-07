@@ -47,7 +47,7 @@ int checkTID(void *thread, void *tid)
 	return (givenThread ->TID == *givenTid);
 }
 
-/* Function to be caled to initialize the library by registering the so-far execution flow */
+/* Function to be called to initialize the library by registering the so-far execution flow */
 int threadInitialization(uthread_func_t func, void *arg)
 {
 	int contextInitCheck = 0;
@@ -258,6 +258,7 @@ int uthread_join(uthread_t tid, int *retval)
 			runningThread -> threadState = BLOCKED;
 			childThread -> parentTID = runningThread -> TID;
 			childThread -> joinCheck = true;
+			
 			/* Make the calling thread wait until thread
 			 * TID finishes */
 			uthread_yield();
